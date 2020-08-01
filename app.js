@@ -12,6 +12,16 @@ var app = new Vue({
     isEmpty: function(obj) {
       return Object.keys(obj).length === 0 && obj.constructor === Object
     }
+  },
+  watch: {
+    player: function(n) {
+      if (n) {
+        if (n.left === 5 && n.right === 5) {
+          alert("You lost!");
+          window.location.href = "https://oskar-codes.github.io/chopsticks-game/";
+        }
+      }
+    }
   }
 });
 
@@ -23,6 +33,7 @@ var app = new Vue({
       if (game) {
         if (game.nPlayers === 2) {
           alert("Game is full.");
+          window.location.href = "https://oskar-codes.github.io/chopsticks-game/";
         } else {
           app.inGame = true;
           firebase.database().ref(`${gameID}/nPlayers`).set(2);
@@ -50,7 +61,8 @@ var app = new Vue({
           app.gameKey = gameID;
         }
       } else {
-        alert("Game not found.")
+        alert("Game not found.");
+        window.location.href = "https://oskar-codes.github.io/chopsticks-game/";
       }
     });
   }
@@ -103,16 +115,16 @@ function createGame() {
 }
 
 function selectHand(hand, el, otherEl) {
-  if (app.yourTurn && app.gameStarted) {
+  if (app.yourTurn && app.gameStarted && app.player[hand] !== 5) {
     el.classList.add('active');
-    otherEl.classList.remove('active');
+    if (otherEl) otherEl.classList.remove('active');
     app.selectedHand = hand;
   }
 }
 
 function placeHand(hand, el) {
   if (app.yourTurn && app.gameStarted && app.selectedHand !== '') {
-    app.otherPlayer[hand] += app.player[app.selectedHand];
+    app.otherPlayer[hand] = add(app.otherPlayer[hand], app.player[app.selectedHand]);
     app.selectedHand = '';
     if (app.player.type === 'Host') {
       firebase.database().ref(`${app.gameKey}/guest`).set(app.otherPlayer);
@@ -122,11 +134,25 @@ function placeHand(hand, el) {
       firebase.database().ref(`${app.gameKey}/turn`).set('Host');
     }
     app.yourTurn = false;
+
     let images = document.querySelectorAll("img");
     for (let i = 0; i < images.length; i++) {
       const img = images[i];
       img.classList.remove('active');
     }
+
+    if (app.otherPlayer.left === 5 && app.otherPlayer.right === 5) {
+      alert("You won!");
+      window.location.href = "https://oskar-codes.github.io/chopsticks-game/";
+    }
+  }
+}
+
+function add(a,b) {
+  if (a+b > 5) {
+      return b - Math.abs(a-5);
+  } else {
+      return a + b;
   }
 }
 
