@@ -18,6 +18,7 @@ var app = new Vue({
       if (n) {
         if (n.left === 5 && n.right === 5) {
           alert("You lost!");
+          if (n.type === 'Host') firebase.database().ref(this.gameKey).remove();
           window.location.href = "https://oskar-codes.github.io/chopsticks-game/";
         }
       }
@@ -143,6 +144,7 @@ function placeHand(hand, el) {
 
     if (app.otherPlayer.left === 5 && app.otherPlayer.right === 5) {
       alert("You won!");
+      if (app.player.type === 'Host') firebase.database().ref(app.gameKey).remove();
       window.location.href = "https://oskar-codes.github.io/chopsticks-game/";
     }
   }
