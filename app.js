@@ -1,0 +1,167 @@
+var app = new Vue({
+  el: '#app',
+  data: {
+    inGame: false,
+    player: {},
+    otherPlayer: {},
+    gameStarted: false,
+    yourTurn: false,
+    selectedHand: ''
+  },
+  methods: {
+    isEmpty: function(obj) {
+      return Object.keys(obj).length === 0 && obj.constructor === Object
+    }
+  }
+});
+
+(() => {
+  let gameID = getAllUrlParams().game;
+  if (gameID) {
+    firebase.database().ref(gameID).once('value',(snap) => {
+      let game = snap.val();
+      if (game) {
+        if (game.nPlayers === 2) {
+          alert("Game is full.");
+        } else {
+          app.inGame = true;
+          firebase.database().ref(`${gameID}/nPlayers`).set(2);
+          app.player = {
+            left: 1,
+            right: 1,
+            type: 'Guest'
+          }
+          firebase.database().ref(`${gameID}/guest`).set(app.player);
+          firebase.database().ref(`${gameID}/host`).once('value', (snap) => {
+            app.otherPlayer = snap.val();
+          });
+          firebase.database().ref(`${gameID}/guest`).on('value', (snap) => {
+            app.player = snap.val();
+          });
+          firebase.database().ref(`${gameID}/turn`).on('value', (snap) => {
+            let t = snap.val();
+            if (t === 'Guest') {
+              app.yourTurn = true;
+            } else {
+              app.yourTurn = false;
+            }
+          });
+          app.gameStarted = true;
+          app.gameKey = gameID;
+        }
+      } else {
+        alert("Game not found.")
+      }
+    });
+  }
+})();
+
+function createGame() {
+  if (!app.inGame) {
+    let newGameRef = firebase.database().ref("/").push();
+    newGameRef.set({
+      host: {
+        left: 1,
+        right: 1,
+        type: 'Host'
+      },
+      nPlayers: 1,
+      turn: 'Host'
+    }).then(() => {
+      app.gameKey = newGameRef.key;
+      window.history.replaceState(null, null, `?game=${app.gameKey}`);
+      app.inGame = true;
+      app.player = {
+        left: 1,
+        right: 1,
+        type: 'Host'
+      }
+      firebase.database().ref(`${app.gameKey}/guest`).on('value', (snap) => {
+        let guest = snap.val();
+        if (guest && !app.gameStarted) {
+          app.gameStarted = true;
+          app.otherPlayer = guest;
+          app.yourTurn = true;
+        }
+      });
+      firebase.database().ref(`${app.gameKey}/host`).on('value', (snap) => {
+        app.player = snap.val();
+      });
+      firebase.database().ref(`${app.gameKey}/turn`).on('value', (snap) => {
+        let t = snap.val();
+        if (t === 'Host') {
+          app.yourTurn = true;
+        } else {
+          app.yourTurn = false;
+        }
+      });
+    }).catch(e => {
+      alert('An error occured. Please try again.');
+      console.error(e);
+    })
+  }
+}
+
+function selectHand(hand, el, otherEl) {
+  if (app.yourTurn && app.gameStarted) {
+    el.classList.add('active');
+    otherEl.classList.remove('active');
+    app.selectedHand = hand;
+  }
+}
+
+function placeHand(hand, el) {
+  if (app.yourTurn && app.gameStarted && app.selectedHand !== '') {
+    app.otherPlayer[hand] += app.player[app.selectedHand];
+    app.selectedHand = '';
+    if (app.player.type === 'Host') {
+      firebase.database().ref(`${app.gameKey}/guest`).set(app.otherPlayer);
+      firebase.database().ref(`${app.gameKey}/turn`).set('Guest');
+    } else {
+      firebase.database().ref(`${app.gameKey}/host`).set(app.otherPlayer);
+      firebase.database().ref(`${app.gameKey}/turn`).set('Host');
+    }
+    app.yourTurn = false;
+    let images = document.querySelectorAll("img");
+    for (let i = 0; i < images.length; i++) {
+      const img = images[i];
+      img.classList.remove('active');
+    }
+  }
+}
+
+function getAllUrlParams(url) {
+  var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
+  var obj = {};
+  if (queryString) {
+    queryString = queryString.split('#')[0];
+    var arr = queryString.split('&');
+    for (var i = 0; i < arr.length; i++) {
+      var a = arr[i].split('=');
+      var paramName = a[0];
+      var paramValue = typeof (a[1]) === 'undefined' ? true : a[1];
+      //paramName = paramName.toLowerCase();
+      //if (typeof paramValue === 'string') paramValue = paramValue.toLowerCase();
+      if (paramName.match(/\[(\d+)?\]$/)) {
+        var key = paramName.replace(/\[(\d+)?\]/, '');
+        if (!obj[key]) obj[key] = [];
+        if (paramName.match(/\[\d+\]$/)) {
+          var index = /\[(\d+)\]/.exec(paramName)[1];
+          obj[key][index] = paramValue;
+        } else {
+          obj[key].push(paramValue);
+        }
+      } else {
+        if (!obj[paramName]) {
+          obj[paramName] = paramValue;
+        } else if (obj[paramName] && typeof obj[paramName] === 'string'){
+          obj[paramName] = [obj[paramName]];
+          obj[paramName].push(paramValue);
+        } else {
+          obj[paramName].push(paramValue);
+        }
+      }
+    }
+  }
+  return obj;
+}

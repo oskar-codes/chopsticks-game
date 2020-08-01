@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chopsticks Game Online</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <h1>Chopsticks Game Online</h1>
+
+      <button v-if="!inGame" onclick="createGame();">Create Game</button>
+
+      <div v-if="inGame">
+        <div>
+          <div v-if="!isEmpty(otherPlayer)" class="other">
+            <img v-if="otherPlayer.left !== 5" v-bind:src="'images/' + (otherPlayer.left) + '.jpg'" class="left" onclick="placeHand('left', this);">
+            <img v-if="otherPlayer.right !== 5" v-bind:src="'images/' + (otherPlayer.right) + '.jpg'" onclick="placeHand('right', this);">
+          </div>
+          <div v-if="isEmpty(otherPlayer)">
+            Waiting for a player to join...
+          </div>
+        </div>
+        <br>
+        <div>
+          <img v-if="player.left !== 5" v-bind:src="'images/' + (player.left) + '.jpg'" class="left" onclick="selectHand('left', this, this.nextElementSibling);">
+          <img v-if="player.right !== 5" v-bind:src="'images/' + (player.right) + '.jpg'" onclick="selectHand('right', this, this.previousElementSibling);">
+        </div>
+        
+        <p>{{gameStarted ? (yourTurn ? 'Your turn!' : 'Waiting for opponent to play...') : ''}}</p>
+      </div>
+    </div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-database.js"></script>
+    <script>
+      var firebaseConfig = { apiKey: "AIzaSyBXGGdN0c_ciflL5LnmA84JzRfhwPZ54jI", authDomain: "chopsticks-game.firebaseapp.com", databaseURL: "https://chopsticks-game.firebaseio.com", projectId: "chopsticks-game", storageBucket: "chopsticks-game.appspot.com", messagingSenderId: "324861554307", appId: "1:324861554307:web:27e95af43e84347f42f5b6", measurementId: "G-39GBX7EPHC" };
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
+    </script>
+    <script src="app.js"></script>
+  </body>
+</html>
