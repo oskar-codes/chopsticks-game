@@ -55,3 +55,7 @@ img:hover {
 .active {
   filter: drop-shadow(2px 4px 6px black);
 }
+
+.dead {
+  opacity: 0.5;
+}
