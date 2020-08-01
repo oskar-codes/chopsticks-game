@@ -20,7 +20,7 @@
             <img v-bind:class="otherPlayer.right === 5 ? 'dead' : ''" v-bind:src="'images/' + (otherPlayer.right) + '.jpg'" onclick="placeHand('right', this);">
           </div>
           <div v-if="isEmpty(otherPlayer)">
-            Game created! Send them the following link so they can join: <a v-bind:href="window.location.href">{{window.location.href}}</a>
+            Game created! Send them this page's url so they can join.
           </div>
         </div>
         <br>
