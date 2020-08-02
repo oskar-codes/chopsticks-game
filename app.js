@@ -11,7 +11,8 @@ var app = new Vue({
   },
   methods: {
     isEmpty: function(obj) {
-      return Object.keys(obj).length === 0 && obj.constructor === Object
+      if (!obj) return true;
+      return Object.keys(obj).length === 0 && obj.constructor === Object;
     }
   },
   watch: {
