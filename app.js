@@ -51,6 +51,9 @@ var app = new Vue({
           firebase.database().ref(`${gameID}/guest`).on('value', (snap) => {
             app.player = snap.val();
           });
+          firebase.database().ref(`${gameID}/host`).on('value', (snap) => {
+            app.otherPlayer = snap.val();
+          });
           firebase.database().ref(`${gameID}/turn`).on('value', (snap) => {
             let t = snap.val();
             if (t === 'Guest') {
@@ -106,6 +109,9 @@ function createGame() {
       });
       firebase.database().ref(`${app.gameKey}/host`).on('value', (snap) => {
         app.player = snap.val();
+      });
+      firebase.database().ref(`${app.gameKey}/guest`).on('value', (snap) => {
+        app.otherPlayer = snap.val();
       });
       firebase.database().ref(`${app.gameKey}/turn`).on('value', (snap) => {
         let t = snap.val();
@@ -178,9 +184,11 @@ function placeHand(hand, el) {
 function nextTurn() {
   if (app.player.type === 'Host') {
     firebase.database().ref(`${app.gameKey}/guest`).set(app.otherPlayer);
+    firebase.database().ref(`${app.gameKey}/host`).set(app.player);
     firebase.database().ref(`${app.gameKey}/turn`).set('Guest');
   } else {
     firebase.database().ref(`${app.gameKey}/host`).set(app.otherPlayer);
+    firebase.database().ref(`${app.gameKey}/guest`).set(app.player);
     firebase.database().ref(`${app.gameKey}/turn`).set('Host');
   }
 }
