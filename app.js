@@ -6,7 +6,8 @@ var app = new Vue({
     otherPlayer: {},
     gameStarted: false,
     yourTurn: false,
-    selectedHand: ''
+    selectedHand: '',
+    transfering: false
   },
   methods: {
     isEmpty: function(obj) {
@@ -95,6 +96,12 @@ function createGame() {
           app.gameStarted = true;
           app.otherPlayer = guest;
           app.yourTurn = true;
+
+          let link = document.getElementById("link");
+          if (link) {
+            link.href = window.location.href;
+            link.innerHTML = window.location.href;
+          }
         }
       });
       firebase.database().ref(`${app.gameKey}/host`).on('value', (snap) => {
@@ -116,37 +123,73 @@ function createGame() {
 }
 
 function selectHand(hand, el, otherEl) {
-  if (app.yourTurn && app.gameStarted && app.player[hand] !== 5) {
-    el.classList.add('active');
-    if (otherEl) otherEl.classList.remove('active');
-    app.selectedHand = hand;
+  if (app.yourTurn && app.gameStarted) {
+    if (app.selectedHand && app.selectedHand !== hand) {
+      app.transfering = true;
+    
+      waitForDOMupdate(() => {
+        let transferEl = document.getElementById("transfering");
+        transferEl.innerHTML = "<h3>Transfer fingers</h3>";
+        let max = app.player[app.selectedHand] - 1;
+        for (let i = 1; i<=max; i++) {
+          transferEl.innerHTML += `<button onclick="transfer(${i},'${hand}')">${i}</button>`;
+        }
+        transferEl.innerHTML += `<button onclick="cancelTransfer();">Cancel</button>`
+      });
+
+    } else if (app.player[hand] !== 5) {
+      el.classList.add('active');
+      app.selectedHand = hand;
+    }
   }
+}
+
+function transfer(amount, which) {
+  app.player[which] = add(app.player[which], amount);
+  app.player[which === 'left' ? 'right' : 'left'] -= amount;
+  nextTurn();
+  app.transfering = false;
+  removeActiveImages();
+}
+
+function cancelTransfer() {
+  app.transfering = false;
+  app.selectedHand = '';
+  removeActiveImages();
 }
 
 function placeHand(hand, el) {
   if (app.yourTurn && app.gameStarted && app.selectedHand !== '') {
     app.otherPlayer[hand] = add(app.otherPlayer[hand], app.player[app.selectedHand]);
     app.selectedHand = '';
-    if (app.player.type === 'Host') {
-      firebase.database().ref(`${app.gameKey}/guest`).set(app.otherPlayer);
-      firebase.database().ref(`${app.gameKey}/turn`).set('Guest');
-    } else {
-      firebase.database().ref(`${app.gameKey}/host`).set(app.otherPlayer);
-      firebase.database().ref(`${app.gameKey}/turn`).set('Host');
-    }
+    nextTurn();
     app.yourTurn = false;
 
-    let images = document.querySelectorAll("img");
-    for (let i = 0; i < images.length; i++) {
-      const img = images[i];
-      img.classList.remove('active');
-    }
+    removeActiveImages();
 
     if (app.otherPlayer.left === 5 && app.otherPlayer.right === 5) {
       alert("You won!");
       if (app.player.type === 'Host') firebase.database().ref(app.gameKey).remove();
       window.location.href = "https://oskar-codes.github.io/chopsticks-game/";
     }
+  }
+}
+
+function nextTurn() {
+  if (app.player.type === 'Host') {
+    firebase.database().ref(`${app.gameKey}/guest`).set(app.otherPlayer);
+    firebase.database().ref(`${app.gameKey}/turn`).set('Guest');
+  } else {
+    firebase.database().ref(`${app.gameKey}/host`).set(app.otherPlayer);
+    firebase.database().ref(`${app.gameKey}/turn`).set('Host');
+  }
+}
+
+function removeActiveImages() {
+  let images = document.querySelectorAll("img");
+  for (let i = 0; i < images.length; i++) {
+    const img = images[i];
+    img.classList.remove('active');
   }
 }
 
@@ -192,4 +235,9 @@ function getAllUrlParams(url) {
     }
   }
   return obj;
+}
+
+function waitForDOMupdate(f) {
+  intermediate = () => { window.requestAnimationFrame(f) }
+  window.requestAnimationFrame(intermediate);
 }
