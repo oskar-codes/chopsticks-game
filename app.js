@@ -155,6 +155,7 @@ function transfer(amount, which) {
   app.player[which === 'left' ? 'right' : 'left'] -= amount;
   nextTurn();
   app.transfering = false;
+  app.selectedHand = '';
   removeActiveImages();
 }
 
