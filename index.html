@@ -30,7 +30,7 @@
         </div>
         <div v-if="transfering" id="transfering"></div>
         <p>{{gameStarted ? (yourTurn ? 'Your turn!' : 'Waiting for opponent to play...') : ''}}</p>
-        <p>{{gameStarted ? `You are ${player.type} playing against ${otherPlayer.type}` : ''}}</p>
+        <p>{{gameStarted ? 'You are '+ player.type +' playing against '+ otherPlayer.type : ''}}</p>
       </div>
     </div>
 
