@@ -49,12 +49,8 @@ img {
   transition: border 0.1s;
 }
 
-img:hover {
-  border: 2px solid cornflowerblue;
-}
-
 .active {
-  filter: drop-shadow(2px 4px 6px black);
+  border: 2px solid cornflowerblue;
 }
 
 .dead {
