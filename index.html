@@ -20,7 +20,7 @@
             <img v-bind:class="otherPlayer.right === 5 ? 'dead' : ''" v-bind:src="'images/' + (otherPlayer.right) + '.jpg'" onclick="placeHand('right', this);">
           </div>
           <div v-if="isEmpty(otherPlayer)">
-            Game created! Send them this page's url so they can join.
+            Game created! Send this page's URL to a friend so they can join.
           </div>
         </div>
         <br>
@@ -28,7 +28,7 @@
           <img v-bind:class="player.left === 5 ? 'dead' : ''" v-bind:src="'images/' + (player.left) + '.jpg'" class="left" onclick="selectHand('left', this, this.nextElementSibling);">
           <img v-bind:class="player.right === 5 ? 'dead' : ''" v-bind:src="'images/' + (player.right) + '.jpg'" onclick="selectHand('right', this, this.previousElementSibling);">
         </div>
-        
+        <div v-if="transfering" id="transfering"></div>
         <p>{{gameStarted ? (yourTurn ? 'Your turn!' : 'Waiting for opponent to play...') : ''}}</p>
       </div>
     </div>
