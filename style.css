@@ -15,6 +15,7 @@ button {
   background-color: aliceblue;
   border-radius: 10px;
   transition: background-color 0.1s;
+  margin: 7px;
 }
 
 button:hover {
